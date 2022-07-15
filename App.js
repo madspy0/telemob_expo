@@ -4,7 +4,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import * as SecureStore from 'expo-secure-store';
 import {styles} from './assets/styles'
-const AuthContext = React.createContext();
+import {HomeScreen} from './screens/HomeScreen'
+import {AuthContext} from './AuthContext'
+//export const AuthContext = React.createContext();
 
 async function save(key, value) {
     await SecureStore.setItemAsync(key, value);
@@ -33,7 +35,7 @@ function SplashScreen() {
     );
 }
 
-function HomeScreen(props) {
+/*function HomeScreen(props) {
     const {signOut} = React.useContext(AuthContext);
     console.log(props.userToken)
     return (
@@ -42,7 +44,7 @@ function HomeScreen(props) {
             <Button title="Sign out" onPress={signOut}/>
         </View>
     );
-}
+}*/
 
 function SignInScreen() {
     const [username, setUsername] = React.useState('');
@@ -133,7 +135,7 @@ export default function App({navigation}) {
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
                 // In the example, we'll use a dummy token
 
-                const url = 'http://192.168.33.102/api/login';
+                const url = 'http://192.168.33.102:81/api/login';
                 fetch(url,
                     {
                         method: 'POST', // или 'PUT'
