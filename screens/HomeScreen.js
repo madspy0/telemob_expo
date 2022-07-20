@@ -1,37 +1,62 @@
 import * as React from 'react';
 import {Button, Text, TextInput, View} from "react-native";
-//import {URL, URLSearchParams} from 'react-native-url-polyfill';
-import 'react-native-url-polyfill/auto';
 import {styles} from "../assets/styles";
 import {AuthContext} from '../AuthContext'
+import EventSource from "react-native-sse";
+import {useEffect} from "react";
 
 export function HomeScreen(props) {
     const {signOut} = React.useContext(AuthContext);
-    const [message, setMesssage] = React.useState('');
+    const [message, setMessage] = React.useState('');
 
-    async function publish() {
-        const url = `http://192.168.33.102/.well-known/mercure` //?data=${encodeURIComponent(message)}&topic=${encodeURIComponent('madspy0')}`
-        const body = new URLSearchParams({data: message})
-        body.append("topic", 'madspy0')
-        let formData = new FormData();
-        formData.append("data", message);
-        formData.append("topic", 'madspy0')
-        const opt = {method: "POST", body};
-        opt.headers = {
-            Authorization: `Bearer ${props.userToken}`,
-            //    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        };
-        // console.log(opt.body.get('topic'))
-        await fetch(url,
+    useEffect(()=>{
+        const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic=madspy0",{
+            headers: new Headers({
+                'Authorization': 'Bearer ' + props.userToken,
+            }),
+        });
+
+        es.addEventListener("open", (event) => {
+            console.log("Open SSE connection.");
+        });
+
+        es.addEventListener("message", (event) => {
+            console.log("New message event:", event.data, event);
+        });
+
+        es.addEventListener("error", (event) => {
+            if (event.type === "error") {
+                console.error("Connection error:", event.message);
+            } else if (event.type === "exception") {
+                console.error("Error:", event.message, event.error);
+            }
+        });
+
+        es.addEventListener("close", (event) => {
+            console.log("Close SSE connection.");
+        });
+    },[])
+
+    function publish() {
+        let params = {
+            'data': message,
+            'topic': 'madspy0'
+        }
+        let formBody = [];
+        for (const property in params) {
+            const encodedKey = encodeURIComponent(property);
+            const encodedValue = encodeURIComponent(params[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        fetch('http://192.168.33.102/.well-known/mercure',
             {
                 method: 'POST', // или 'PUT'
-                body,
+                body: formBody,
                 headers: new Headers({
                     'Authorization': 'Bearer ' + props.userToken,
-                    //'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                    //'Content-Length': 69,
-                    //'Accept': 'application/json',
-                    // 'Host': '192.168.1.138'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }),
             },
             //  opt
@@ -49,7 +74,7 @@ export function HomeScreen(props) {
             <TextInput
                 placeholder="message"
                 value={message}
-                onChangeText={setMesssage}
+                onChangeText={setMessage}
             />
             <Button title="Send" onPress={publish}/>
         </View>
