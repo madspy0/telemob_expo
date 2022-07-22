@@ -6,6 +6,7 @@ import EventSource from "react-native-sse";
 import {useEffect} from "react";
 
 export function HomeScreen(props) {
+
     const {signOut} = React.useContext(AuthContext);
     const [message, setMessage] = React.useState('');
 
@@ -37,7 +38,7 @@ export function HomeScreen(props) {
         });
     },[])
 
-    function publish() {
+    async function publish() {
         let params = {
             'data': message,
             'topic': 'madspy0'
@@ -49,7 +50,7 @@ export function HomeScreen(props) {
             formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
-        fetch('http://192.168.33.102/.well-known/mercure',
+        await fetch('http://192.168.33.102/.well-known/mercure',
             {
                 method: 'POST', // или 'PUT'
                 body: formBody,
@@ -62,7 +63,7 @@ export function HomeScreen(props) {
             //  opt
         )
             .then(data => {
-                console.log(data)
+                setMessage('')
             })
             .catch(e => console.log(e));
     }

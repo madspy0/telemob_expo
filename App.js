@@ -6,6 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import {styles} from './assets/styles'
 import {HomeScreen} from './screens/HomeScreen'
 import {AuthContext} from './AuthContext'
+import jwt_decode from "jwt-decode";
 //export const AuthContext = React.createContext();
 
 async function save(key, value) {
@@ -20,6 +21,10 @@ async function getValueFor(key) {
     let result = await SecureStore.getItemAsync(key);
     if (result) {
         // alert("🔐 Here's your value 🔐 \n" + result);
+        let t = jwt_decode(result)
+        if (Date.now() >= t.exp * 1000) {
+            return null;
+        }
         return result
     } else {
         // alert('No values stored under that key.');
@@ -129,7 +134,7 @@ export default function App({navigation}) {
 
     const authContext = React.useMemo(
         () => ({
-            signIn: async (data) => {
+            signIn:  (data) => {
                 // In a production app, we need to send some data (usually username, password) to server and get a token
                 // We will also need to handle errors if sign in failed
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
