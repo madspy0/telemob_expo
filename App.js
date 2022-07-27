@@ -7,6 +7,7 @@ import {styles} from './assets/styles'
 import {HomeScreen} from './screens/HomeScreen'
 import {AuthContext} from './AuthContext'
 import jwt_decode from "jwt-decode";
+import 'expo-dev-client';
 //export const AuthContext = React.createContext();
 
 async function save(key, value) {

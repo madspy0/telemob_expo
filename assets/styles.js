@@ -26,5 +26,8 @@ export const styles = StyleSheet.create({
         shadowRadius: 2.62,
         elevation: 4,
     },
+    stream: {
+        flex: 1
+    },
     error: {textAlign: 'center', height: 17.5},
 });
