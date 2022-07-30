@@ -5,7 +5,12 @@ import {AuthContext} from '../AuthContext'
 import EventSource from "react-native-sse";
 import {useEffect, useState} from "react";
 
-import {mediaDevices, RTCView, registerGlobals, Permissions} from 'react-native-webrtc';
+import {
+    RTCView,
+    mediaDevices,
+    MediaStream,
+} from 'react-native-webrtc';
+import SafeAreaView from "react-native/Libraries/Components/SafeAreaView/SafeAreaView";
 
 export function HomeScreen(props) {
 
@@ -13,34 +18,34 @@ export function HomeScreen(props) {
     const [message, setMessage] = React.useState('');
     const [stream, setStream] = useState(null);
 
-/*    useEffect(() => {
-        const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic=madspy0", {
-            headers: new Headers({
-                'Authorization': 'Bearer ' + props.userToken,
-            }),
-        });
+    /*    useEffect(() => {
+            const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic=madspy0", {
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + props.userToken,
+                }),
+            });
 
-        es.addEventListener("open", (event) => {
-            console.log("Open SSE connection.");
-        });
+            es.addEventListener("open", (event) => {
+                console.log("Open SSE connection.");
+            });
 
-        es.addEventListener("message", (event) => {
-            console.log("New message event:", event.data, event);
-        });
+            es.addEventListener("message", (event) => {
+                console.log("New message event:", event.data, event);
+            });
 
-        es.addEventListener("error", (event) => {
-            if (event.type === "error") {
-                console.error("Connection error:", event.message);
-            } else if (event.type === "exception") {
-                console.error("Error:", event.message, event.error);
-            }
-        });
+            es.addEventListener("error", (event) => {
+                if (event.type === "error") {
+                    console.error("Connection error:", event.message);
+                } else if (event.type === "exception") {
+                    console.error("Error:", event.message, event.error);
+                }
+            });
 
-        es.addEventListener("close", (event) => {
-            console.log("Close SSE connection.");
-        });
+            es.addEventListener("close", (event) => {
+                console.log("Close SSE connection.");
+            });
 
-    }, [])*/
+        }, [])*/
 
     async function publish() {
         let params = {
@@ -97,61 +102,53 @@ export function HomeScreen(props) {
     };
 
     const start = async () => {
-        console.log('start');
-        await requestCameraPermission()
-        if (!stream) {
-/*            let s;
-            try {
-                s = await mediaDevices.getUserMedia(
-                    {
-                        video: true
-                    }
-                );
-                console.log(s)
+            console.log('start');
+            await requestCameraPermission()
+            if (!stream) {
+                /*            let s;
+                            try {
+                                s = await mediaDevices.getUserMedia(
+                                    {
+                                        video: true
+                                    }
+                                );
+                                console.log(s)
+                                const devices = await mediaDevices.enumerateDevices();
+
+                                const videoSourceId = devices.find(
+                                    (device) => device.kind === 'videoinput' && device.facing === "front",
+                                );
+                                console.log(videoSourceId)
+                                setStream(s);
+                            } catch (e) {
+                                console.error(e);
+                            }*/
+                const isFrontCamera = true;
                 const devices = await mediaDevices.enumerateDevices();
 
+                const facing = isFrontCamera ? 'front' : 'environment';
                 const videoSourceId = devices.find(
-                    (device) => device.kind === 'videoinput' && device.facing === "front",
+                    (device) => device.kind === 'videoinput' && device.facing === facing,
                 );
-                console.log(videoSourceId)
-                setStream(s);
-            } catch (e) {
-                console.error(e);
-            }*/
-            let isFront = true;
-            mediaDevices.enumerateDevices().then(sourceInfos => {
-                console.log(sourceInfos);
-                let videoSourceId;
-                for (let i = 0; i < sourceInfos.length; i++) {
-                    const sourceInfo = sourceInfos[i];
-                    if(sourceInfo.kind == "videoinput" && sourceInfo.facing == (isFront ? "front" : "environment")) {
-                        videoSourceId = sourceInfo.deviceId;
-                    }
-                }
-                mediaDevices.getUserMedia({
-                    audio: true,
+                const facingMode = isFrontCamera ? 'user' : 'environment';
+                const constraints = {
+                    // audio: true,
                     video: {
                         mandatory: {
-                            minWidth: 500, // Provide your own width, height and frame rate here
+                            minWidth: 500,
                             minHeight: 300,
-                            minFrameRate: 30
+                            minFrameRate: 30,
                         },
-                        facingMode: (isFront ? "user" : "environment"),
-                        optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
-                    }
-                })
-                    .then(stream => {
-                        // Got stream!
-                        setStream(stream)
-                    })
-                    .catch(error => {
-                        // Log error
-                        console.log(error)
-                    });
-            });
-
+                        facingMode,
+                        optional: videoSourceId ? [{sourceId: videoSourceId}] : [],
+                    },
+                };
+                const newStream = await mediaDevices.getUserMedia(constraints);
+                setStream(newStream)
+                console.log(newStream.toURL())
+            }
         }
-    };
+    ;
     const stop = () => {
         console.log('stop');
         if (stream) {
@@ -160,27 +157,33 @@ export function HomeScreen(props) {
         }
     };
     return (
-        <View style={styles.container}>
-            <Text>Signed in!</Text>
-            <Button title="Sign out" onPress={signOut}/>
-            {
-                stream &&
-                <RTCView
-                    streamURL={stream.toURL()}
-                    style={styles.stream}/>
-            }
-            <Button
-                title="Start"
-                onPress={start}/>
-            <Button
-                title="Stop"
-                onPress={stop}/>
-            <TextInput
-                placeholder="message"
-                value={message}
-                onChangeText={setMessage}
-            />
-            <Button title="Send" onPress={publish}/>
-        </View>
+        <SafeAreaView style={styles.rtcContainer}>
+                {
+                    stream &&
+                    <RTCView
+                        streamURL={stream.toURL()}
+                        objectFit="cover"
+                        zOrder={3}
+                        style={styles.stream}/>
+                }
+
+            <View zOrder={2} style={styles.buttonbar}>
+                <Button title="Sign out" onPress={signOut}/>
+                <TextInput
+                    placeholder="message"
+                    value={message}
+                    onChangeText={setMessage}
+
+                />
+                <Button title="Send" onPress={publish}/>
+                <Button
+                    title="Start"
+                    onPress={start}/>
+                <Button
+                    title="Stop"
+                    onPress={stop}/>
+            </View>
+
+        </SafeAreaView>
     );
 }

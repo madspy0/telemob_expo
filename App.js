@@ -198,7 +198,9 @@ export default function App({navigation}) {
                         />
                     ) : (
                         // User is signed in
-                        <Stack.Screen name="Home">
+                        <Stack.Screen name="Home" options={
+                            {headerShown: false}
+                        }>
                             {props => <HomeScreen {...props} userToken={state.userToken}/>}
                         </Stack.Screen>
                         /*                                      component={HomeScreen}
