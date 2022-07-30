@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button, Text, TextInput, View} from "react-native";
+import {Button, PermissionsAndroid, Text, TextInput, View} from "react-native";
 import {styles} from "../assets/styles";
 import {AuthContext} from '../AuthContext'
 import EventSource from "react-native-sse";
@@ -72,8 +72,33 @@ export function HomeScreen(props) {
             .catch(e => console.log(e));
     }
 
+    const requestCameraPermission = async () => {
+        try {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.CAMERA,
+                {
+                    title: "Cool Photo App Camera Permission",
+                    message:
+                        "Cool Photo App needs access to your camera " +
+                        "so you can take awesome pictures.",
+                    buttonNeutral: "Ask Me Later",
+                    buttonNegative: "Cancel",
+                    buttonPositive: "OK"
+                }
+            );
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                console.log("You can use the camera");
+            } else {
+                console.log("Camera permission denied");
+            }
+        } catch (err) {
+            console.warn(err);
+        }
+    };
+
     const start = async () => {
         console.log('start');
+        await requestCameraPermission()
         if (!stream) {
 /*            let s;
             try {
