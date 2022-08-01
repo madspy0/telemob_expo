@@ -4,13 +4,15 @@ import {styles} from "../assets/styles";
 import {AuthContext} from '../AuthContext'
 import EventSource from "react-native-sse";
 import {useEffect, useState} from "react";
+//import Constants from 'expo-constants';
+import {StatusBar} from 'expo-status-bar';
 
 import {
     RTCView,
     mediaDevices,
     MediaStream,
 } from 'react-native-webrtc';
-import SafeAreaView from "react-native/Libraries/Components/SafeAreaView/SafeAreaView";
+//import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export function HomeScreen(props) {
 
@@ -132,7 +134,7 @@ export function HomeScreen(props) {
                 );
                 const facingMode = isFrontCamera ? 'user' : 'environment';
                 const constraints = {
-                    // audio: true,
+                    audio: true,
                     video: {
                         mandatory: {
                             minWidth: 500,
@@ -145,7 +147,6 @@ export function HomeScreen(props) {
                 };
                 const newStream = await mediaDevices.getUserMedia(constraints);
                 setStream(newStream)
-                console.log(newStream.toURL())
             }
         }
     ;
@@ -156,34 +157,71 @@ export function HomeScreen(props) {
             setStream(null);
         }
     };
+
+    const toggleLocalStream = () => {
+        if (stream) {
+            stop();
+        } else {
+            start()
+
+        }
+    }
+
+/*    const insets = useSafeAreaInsets();
+    const [topPadding, setTopPadding] = useState(insets.top)
+    const [bottomPadding, setBottomPadding] = useState(insets.bottom)
+    useEffect(() => {
+        setBottomPadding(insets.bottom)
+        setTopPadding(insets.top)
+
+        console.log("insets.top: " + topPadding)
+        console.log("insets.bottom: " + bottomPadding)
+    }, [insets.bottom, insets.top])*/
+
     return (
-        <SafeAreaView style={styles.rtcContainer}>
+        <>
+            <View style={{
+             //   paddingTop: topPadding,
+            //    paddingBottom: bottomPadding,
+                justifyContent: 'center',
+                /*            padding: 8,*/
+                            alignItems: 'stretch',
+                flex: 1,
+                backgroundColor: 'gray'
+            }}>
                 {
                     stream &&
                     <RTCView
                         streamURL={stream.toURL()}
                         objectFit="cover"
-                        zOrder={3}
-                        style={styles.stream}/>
+                        style={{
+                            flex: 1,
+                            alignItems: 'stretch',
+/*                            height: 'auto',
+                            width: '100%',*/
+                       //     paddingTop: topPadding,
+                       //     paddingBottom: bottomPadding,
+                            justifyContent: 'center',
+                        }}/>
                 }
-
-            <View zOrder={2} style={styles.buttonbar}>
+                {/* use light text instead of dark text in the status bar to provide more contrast with a dark background */}
+                <StatusBar style="auto"/>
+            </View>
+            <View style={styles.buttonbar}>
                 <Button title="Sign out" onPress={signOut}/>
                 <TextInput
                     placeholder="message"
                     value={message}
                     onChangeText={setMessage}
-
                 />
                 <Button title="Send" onPress={publish}/>
                 <Button
-                    title="Start"
-                    onPress={start}/>
-                <Button
-                    title="Stop"
-                    onPress={stop}/>
+                    title= { stream ? "OFF" : 'ON'}
+                    color={ stream ? "red" : 'blue' }
+                    onPress={toggleLocalStream}/>
             </View>
 
-        </SafeAreaView>
+        </>
+
     );
 }

@@ -8,6 +8,9 @@ import {HomeScreen} from './screens/HomeScreen'
 import {AuthContext} from './AuthContext'
 import jwt_decode from "jwt-decode";
 import 'expo-dev-client';
+//import {useSafeAreaInsets, SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {StatusBar} from 'expo-status-bar';
+
 //export const AuthContext = React.createContext();
 
 async function save(key, value) {
@@ -57,22 +60,35 @@ function SignInScreen() {
     const [password, setPassword] = React.useState('');
 
     const {signIn} = React.useContext(AuthContext);
+    //const insets = useSafeAreaInsets();
 
     return (
-        <View style={styles.container}>
-            <TextInput
-                placeholder="Username"
-                value={username}
-                onChangeText={setUsername}
-            />
-            <TextInput
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
-            <Button title="Sign in" onPress={() => signIn({username, password})}/>
-        </View>
+
+            <View style={{
+                flex: 1,
+                backgroundColor: '#338feb',
+                alignItems: 'center',
+                justifyContent: 'center',
+/*                paddingTop: insets.top,
+                paddingBottom: insets.bottom,*/
+            }}>
+                <TextInput
+                    placeholder="Username"
+                    value={username}
+                    onChangeText={setUsername}
+                    style={styles.input}
+                />
+                <TextInput
+                    placeholder="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    style={styles.input}
+                />
+                <Button title="Sign in" onPress={() => signIn({username, password})}/>
+                <StatusBar style="auto"/>
+            </View>
+
     );
 }
 
@@ -135,13 +151,13 @@ export default function App({navigation}) {
 
     const authContext = React.useMemo(
         () => ({
-            signIn:  (data) => {
+            signIn: (data) => {
                 // In a production app, we need to send some data (usually username, password) to server and get a token
                 // We will also need to handle errors if sign in failed
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
                 // In the example, we'll use a dummy token
 
-                const url = 'http://192.168.33.102:81/api/login';
+                const url = 'http://192.168.1.138:81/api/login';
                 fetch(url,
                     {
                         method: 'POST', // или 'PUT'
@@ -180,34 +196,47 @@ export default function App({navigation}) {
 
     return (
         <AuthContext.Provider value={authContext}>
-            <NavigationContainer>
-                <Stack.Navigator>
-                    {state.isLoading ? (
-                        // We haven't finished checking for the token yet
-                        <Stack.Screen name="Splash" component={SplashScreen}/>
-                    ) : state.userToken == null ? (
-                        // No token found, user isn't signed in
-                        <Stack.Screen
-                            name="SignIn"
-                            component={SignInScreen}
-                            options={{
-                                title: 'Sign in',
-                                // When logging out, a pop animation feels intuitive
-                                animationTypeForReplace: state.isSignout ? 'pop' : 'push',
-                            }}
-                        />
-                    ) : (
-                        // User is signed in
-                        <Stack.Screen name="Home" options={
-                            {headerShown: false}
-                        }>
-                            {props => <HomeScreen {...props} userToken={state.userToken}/>}
-                        </Stack.Screen>
-                        /*                                      component={HomeScreen}
-                                                />*/
-                    )}
-                </Stack.Navigator>
-            </NavigationContainer>
+
+                <NavigationContainer>
+                    <Stack.Navigator screenOptions={{
+                        headerShown: false,
+                        headerStatusBarHeight: 0, // Header had increased size with SafeArea for some reason (https://github.com/react-navigation/react-navigation/issues/5936)
+                        headerStyle: {
+                            elevation: 0, // remove shadow on Android
+                            shadowOpacity: 0, // remove shadow on iOS
+                        },
+                        navigationOptions: {
+                            header: null
+                        },
+                        cardStyle: {
+                            backgroundColor: "transparent",
+                        }
+                    }}>
+                        {state.isLoading ? (
+                            // We haven't finished checking for the token yet
+                            <Stack.Screen name="Splash" component={SplashScreen}/>
+                        ) : state.userToken == null ? (
+                            // No token found, user isn't signed in
+                            <Stack.Screen
+                                name="SignIn"
+                                component={SignInScreen}
+                                options={{
+                                    title: 'Sign in',
+                                    // When logging out, a pop animation feels intuitive
+                                    animationTypeForReplace: state.isSignout ? 'pop' : 'push',
+                                }}
+                            />
+                        ) : (
+                            // User is signed in
+                            <Stack.Screen name="Home">
+                                {props => <HomeScreen {...props} userToken={state.userToken}/>}
+                            </Stack.Screen>
+                            /*                                      component={HomeScreen}
+                                                    />*/
+                        )}
+                    </Stack.Navigator>
+                </NavigationContainer>
+
         </AuthContext.Provider>
     );
 }
