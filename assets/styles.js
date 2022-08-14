@@ -8,11 +8,10 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     rtcContainer: {
+        justifyContent: 'center',
+        alignItems: 'stretch',
         flex: 1,
-        backgroundColor: 'gray',
-        /*        alignContent: 'flex-start',
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',*/
+        backgroundColor: '#338feb'
     },
     input: {
 /*        height: 40,

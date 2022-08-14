@@ -4,21 +4,28 @@ import {styles} from "../assets/styles";
 import {AuthContext} from '../AuthContext'
 import EventSource from "react-native-sse";
 import {useEffect, useState} from "react";
-//import Constants from 'expo-constants';
 import {StatusBar} from 'expo-status-bar';
 
 import {
+    ScreenCapturePickerView,
+    RTCPeerConnection,
+    RTCIceCandidate,
+    RTCSessionDescription,
     RTCView,
-    mediaDevices,
     MediaStream,
+    MediaStreamTrack,
+    mediaDevices,
+    registerGlobals
 } from 'react-native-webrtc';
+import {call} from "../utils/connect";
+
 //import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export function HomeScreen(props) {
 
     const {signOut} = React.useContext(AuthContext);
     const [message, setMessage] = React.useState('');
-    const [stream, setStream] = useState(null);
+    const [localStream, setLocalStream] = useState(null);
 
     /*    useEffect(() => {
             const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic=madspy0", {
@@ -104,62 +111,45 @@ export function HomeScreen(props) {
     };
 
     const start = async () => {
-            console.log('start');
-            await requestCameraPermission()
-            if (!stream) {
-                /*            let s;
-                            try {
-                                s = await mediaDevices.getUserMedia(
-                                    {
-                                        video: true
-                                    }
-                                );
-                                console.log(s)
-                                const devices = await mediaDevices.enumerateDevices();
+        console.log('start');
+        await requestCameraPermission()
+        if (!localStream) {
+            const isFrontCamera = true;
+            const devices = await mediaDevices.enumerateDevices();
 
-                                const videoSourceId = devices.find(
-                                    (device) => device.kind === 'videoinput' && device.facing === "front",
-                                );
-                                console.log(videoSourceId)
-                                setStream(s);
-                            } catch (e) {
-                                console.error(e);
-                            }*/
-                const isFrontCamera = true;
-                const devices = await mediaDevices.enumerateDevices();
-
-                const facing = isFrontCamera ? 'front' : 'environment';
-                const videoSourceId = devices.find(
-                    (device) => device.kind === 'videoinput' && device.facing === facing,
-                );
-                const facingMode = isFrontCamera ? 'user' : 'environment';
-                const constraints = {
-                    audio: true,
-                    video: {
-                        mandatory: {
-                            minWidth: 500,
-                            minHeight: 300,
-                            minFrameRate: 30,
-                        },
-                        facingMode,
-                        optional: videoSourceId ? [{sourceId: videoSourceId}] : [],
+            const facing = isFrontCamera ? 'front' : 'environment';
+            const videoSourceId = devices.find(
+                (device) => device.kind === 'videoinput' && device.facing === facing,
+            );
+            const facingMode = isFrontCamera ? 'user' : 'environment';
+            const constraints = {
+                audio: true,
+                video: {
+                    mandatory: {
+                        minWidth: 500,
+                        minHeight: 300,
+                        minFrameRate: 30,
                     },
-                };
-                const newStream = await mediaDevices.getUserMedia(constraints);
-                setStream(newStream)
-            }
+                    facingMode,
+                    optional: videoSourceId ? [{sourceId: videoSourceId}] : [],
+                },
+            };
+            const newStream = await mediaDevices.getUserMedia(constraints);
+            await setLocalStream(newStream)
+            // console.log(newStream)
+            await call(newStream)
         }
-    ;
+    }
     const stop = () => {
         console.log('stop');
-        if (stream) {
-            stream.release();
-            setStream(null);
+        if (localStream) {
+            localStream.release();
+            setLocalStream(null);
         }
     };
 
     const toggleLocalStream = () => {
-        if (stream) {
+        if (localStream) {
             stop();
         } else {
             start()
@@ -167,40 +157,17 @@ export function HomeScreen(props) {
         }
     }
 
-/*    const insets = useSafeAreaInsets();
-    const [topPadding, setTopPadding] = useState(insets.top)
-    const [bottomPadding, setBottomPadding] = useState(insets.bottom)
-    useEffect(() => {
-        setBottomPadding(insets.bottom)
-        setTopPadding(insets.top)
-
-        console.log("insets.top: " + topPadding)
-        console.log("insets.bottom: " + bottomPadding)
-    }, [insets.bottom, insets.top])*/
-
     return (
         <>
-            <View style={{
-             //   paddingTop: topPadding,
-            //    paddingBottom: bottomPadding,
-                justifyContent: 'center',
-                /*            padding: 8,*/
-                            alignItems: 'stretch',
-                flex: 1,
-                backgroundColor: 'gray'
-            }}>
+            <View style={styles.rtcContainer}>
                 {
-                    stream &&
+                    localStream &&
                     <RTCView
-                        streamURL={stream.toURL()}
+                        streamURL={localStream.toURL()}
                         objectFit="cover"
                         style={{
                             flex: 1,
                             alignItems: 'stretch',
-/*                            height: 'auto',
-                            width: '100%',*/
-                       //     paddingTop: topPadding,
-                       //     paddingBottom: bottomPadding,
                             justifyContent: 'center',
                         }}/>
                 }
@@ -216,8 +183,8 @@ export function HomeScreen(props) {
                 />
                 <Button title="Send" onPress={publish}/>
                 <Button
-                    title= { stream ? "OFF" : 'ON'}
-                    color={ stream ? "red" : 'blue' }
+                    title={localStream ? "OFF" : 'ON'}
+                    color={localStream ? "red" : 'blue'}
                     onPress={toggleLocalStream}/>
             </View>
 
