@@ -5,6 +5,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import * as SecureStore from 'expo-secure-store';
 import {styles} from './assets/styles'
 import {HomeScreen} from './screens/HomeScreen'
+import {ListScreen} from './screens/ListScreen'
 import {AuthContext} from './AuthContext'
 import jwt_decode from "jwt-decode";
 import 'expo-dev-client';
@@ -116,6 +117,18 @@ export default function App({navigation}) {
                         isSignout: true,
                         userToken: null,
                     };
+                case 'COMPANION':
+                    return {
+                        ...prevState,
+                        isSignout: false,
+                        companion: action.companion,
+                    };
+                case 'LIST':
+                    return {
+                        ...prevState,
+                        isSignout: false,
+                        companion: null,
+                    };
             }
         },
         {
@@ -157,7 +170,7 @@ export default function App({navigation}) {
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
                 // In the example, we'll use a dummy token
 
-                const url = 'http://192.168.1.138:81/api/login';
+                const url = 'http://192.168.33.102:81/api/login';
                 fetch(url,
                     {
                         method: 'POST', // или 'PUT'
@@ -190,6 +203,13 @@ export default function App({navigation}) {
 
                 dispatch({type: 'SIGN_IN', token: 'dummy-auth-token'});
             },
+            companion: async (data) => {
+                console.log(data);
+                dispatch({type: 'COMPANION',  companion: data})
+            },
+            list: async () => {
+                dispatch({type: 'LIST'})
+            }
         }),
         []
     );
@@ -226,13 +246,20 @@ export default function App({navigation}) {
                                     animationTypeForReplace: state.isSignout ? 'pop' : 'push',
                                 }}
                             />
-                        ) : (
+                        ) : state.companion == null ? (
                             // User is signed in
-                            <Stack.Screen name="Home">
+/*                            <Stack.Screen name="Home">
                                 {props => <HomeScreen {...props} userToken={state.userToken}/>}
+                            </Stack.Screen>*/
+                            <Stack.Screen name="List">
+                                {props => <ListScreen {...props} userToken={state.userToken}/>}
                             </Stack.Screen>
                             /*                                      component={HomeScreen}
                                                     />*/
+                        ): (
+                            <Stack.Screen name="Home">
+                                {props => <HomeScreen {...props} userToken={state.userToken} companion={state.companion}/>}
+                            </Stack.Screen>
                         )}
                     </Stack.Navigator>
                 </NavigationContainer>

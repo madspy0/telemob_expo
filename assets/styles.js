@@ -55,5 +55,13 @@ export const styles = StyleSheet.create({
         alignContent: 'space-between',
         /*  flexWrap: 'wrap'*/
     },
+    item: {
+        padding: 20,
+        marginVertical: 8,
+        marginHorizontal: 16,
+    },
+    title: {
+        fontSize: 32,
+    },
     error: {textAlign: 'center', height: 17.5},
 });

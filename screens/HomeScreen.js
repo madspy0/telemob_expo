@@ -17,13 +17,13 @@ import {
     mediaDevices,
     registerGlobals
 } from 'react-native-webrtc';
-import {call} from "../utils/connect";
+//import {call} from "../utils/connect";
 
 //import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export function HomeScreen(props) {
 
-    const {signOut} = React.useContext(AuthContext);
+    const {signOut, list} = React.useContext(AuthContext);
     const [message, setMessage] = React.useState('');
     const [localStream, setLocalStream] = useState(null);
 
@@ -56,10 +56,10 @@ export function HomeScreen(props) {
 
         }, [])*/
 
-    async function publish() {
+    async function publish(companion, desc) {
         let params = {
-            'data': message,
-            'topic': 'madspy0'
+            'data': JSON.stringify(desc),
+            'topic': companion
         }
         let formBody = [];
         for (const property in params) {
@@ -84,6 +84,26 @@ export function HomeScreen(props) {
                 setMessage('')
             })
             .catch(e => console.log(e));
+    }
+
+    async function call(localStream) {
+        const configuration = {
+            "iceServers": [{"url": "stun:stun.l.google.com:19302"}]
+        };
+        const pc = new RTCPeerConnection(configuration);
+        pc.createOffer(undefined).then(desc => {
+            pc.setLocalDescription(desc).then(() => {
+                // Send pc.localDescription to peer
+                console.log(desc)
+                publish(props.companion, desc)
+            });
+        });
+
+        pc.onicecandidate = function (event) {
+            // send event.candidate to peer
+        };
+
+// also support setRemoteDescription, createAnswer, addIceCandidate, onnegotiationneeded, oniceconnectionstatechange, onsignalingstatechange, onaddstream
     }
 
     const requestCameraPermission = async () => {
@@ -161,7 +181,7 @@ export function HomeScreen(props) {
         <>
             <View style={styles.rtcContainer}>
                 {
-                    localStream &&
+                    localStream ?
                     <RTCView
                         streamURL={localStream.toURL()}
                         objectFit="cover"
@@ -170,6 +190,7 @@ export function HomeScreen(props) {
                             alignItems: 'stretch',
                             justifyContent: 'center',
                         }}/>
+                        : <Text style={styles.title}>Call to {props.companion}</Text>
                 }
                 {/* use light text instead of dark text in the status bar to provide more contrast with a dark background */}
                 <StatusBar style="auto"/>
@@ -186,6 +207,7 @@ export function HomeScreen(props) {
                     title={localStream ? "OFF" : 'ON'}
                     color={localStream ? "red" : 'blue'}
                     onPress={toggleLocalStream}/>
+                <Button title="List" onPress={list}/>
             </View>
 
         </>

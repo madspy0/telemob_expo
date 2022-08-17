@@ -9,8 +9,9 @@ import {
     mediaDevices,
     registerGlobals
 } from 'react-native-webrtc';
+import {useState} from "react";
 
-export async function call(localStream) {
+async function call(localStream) {
     const configuration = {
         "iceServers": [{"url": "stun:stun.l.google.com:19302"}]
     };
@@ -28,3 +29,20 @@ export async function call(localStream) {
 
 // also support setRemoteDescription, createAnswer, addIceCandidate, onnegotiationneeded, oniceconnectionstatechange, onsignalingstatechange, onaddstream
 }
+
+export async function getList(userToken) {
+    const [list, setList] = useState([])
+    await fetch('http://192.168.33.102:81/api/users',
+        {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + userToken
+            })
+        })
+        .then((resp) => resp.json())
+        .then(r => {
+            setList(r);
+        })
+    return list
+}
+
