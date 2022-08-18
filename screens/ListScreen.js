@@ -1,15 +1,16 @@
 import * as React from 'react';
-import {View, Text, FlatList} from 'react-native'
+import {View, Text, FlatList, Button} from 'react-native'
 import {useEffect, useState} from "react";
 import {TouchableOpacity} from "react-native-gesture-handler";
 import {AuthContext} from '../AuthContext'
 import {styles} from '../assets/styles'
-import {HomeScreen} from '../screens/HomeScreen'
+import {subscribe} from "../utils/connect";
+
 //import {getList} from '../utils/connect'
 
 export function ListScreen(props) {
-    //console.log(props)
-    const {companion} = React.useContext(AuthContext);
+    console.log(props)
+    const {companion, signOut} = React.useContext(AuthContext);
     const [list, setList] = useState([])
     useEffect(() => {
         const fetchData = async () => {
@@ -25,9 +26,10 @@ export function ListScreen(props) {
             setList(json)
         }
         fetchData().catch(console.error);
+        subscribe(props)
     }, [])
     //getList(props.userToken).then(r=>console.log(r))
-    const Item = ({item, onPress, backgroundColor, textColor}) => (
+    const Item = ({item, onPress,}) => (
         <TouchableOpacity onPress={onPress} style={styles.item}>
             <Text style={styles.title}>{item.title}</Text>
         </TouchableOpacity>
@@ -35,9 +37,9 @@ export function ListScreen(props) {
 
     const renderItem = ({item}) => {
         return (<Item item={item} onPress={() => {
-        companion(item.title)
-        //props.navigation.navigate('Home', { userToken: props.userToken })
-        }} />)
+            companion(item.title)
+            //props.navigation.navigate('Home', { userToken: props.userToken })
+        }}/>)
     };
     return (
         <View>
@@ -46,6 +48,7 @@ export function ListScreen(props) {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
             />
+            <Button title="Sign out" onPress={signOut}/>
         </View>
     )
 }

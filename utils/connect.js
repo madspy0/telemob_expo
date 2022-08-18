@@ -10,6 +10,7 @@ import {
     registerGlobals
 } from 'react-native-webrtc';
 import {useState} from "react";
+import EventSource from "react-native-sse";
 
 async function call(localStream) {
     const configuration = {
@@ -46,3 +47,31 @@ export async function getList(userToken) {
     return list
 }
 
+export function subscribe(props) {
+
+    const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic="+encodeURIComponent(props.username), {
+        headers: new Headers({
+            'Authorization': 'Bearer ' + props.userToken,
+        }),
+    });
+    console.log('props!!!', es)
+    es.addEventListener("open", (event) => {
+        console.log("Open SSE connection.");
+    });
+
+    es.addEventListener("message", (event) => {
+        console.log("New message event:", event.data, event);
+    });
+
+    es.addEventListener("error", (event) => {
+        if (event.type === "error") {
+            console.error("Connection error:", event.message);
+        } else if (event.type === "exception") {
+            console.error("Error:", event.message, event.error);
+        }
+    });
+
+    es.addEventListener("close", (event) => {
+        console.log("Close SSE connection.");
+    });
+}

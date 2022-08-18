@@ -110,6 +110,7 @@ export default function App({navigation}) {
                         ...prevState,
                         isSignout: false,
                         userToken: action.token,
+                        username: action.username
                     };
                 case 'SIGN_OUT':
                     return {
@@ -185,7 +186,7 @@ export default function App({navigation}) {
                     .then((r) => {
                         if (r.token) {
                             save('userToken', r.token)
-                            dispatch({type: 'SIGN_IN', token: r.token});
+                            dispatch({type: 'SIGN_IN', token: r.token, username: data.username});
                         } else {
                             alert(r.error)
                         }
@@ -252,13 +253,13 @@ export default function App({navigation}) {
                                 {props => <HomeScreen {...props} userToken={state.userToken}/>}
                             </Stack.Screen>*/
                             <Stack.Screen name="List">
-                                {props => <ListScreen {...props} userToken={state.userToken}/>}
+                                {props => <ListScreen {...props} userToken={state.userToken} username={state.username}/>}
                             </Stack.Screen>
                             /*                                      component={HomeScreen}
                                                     />*/
                         ): (
                             <Stack.Screen name="Home">
-                                {props => <HomeScreen {...props} userToken={state.userToken} companion={state.companion}/>}
+                                {props => <HomeScreen {...props} userToken={state.userToken} companion={state.companion} username={state.username}/>}
                             </Stack.Screen>
                         )}
                     </Stack.Navigator>

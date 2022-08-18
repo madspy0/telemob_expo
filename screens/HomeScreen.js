@@ -5,7 +5,7 @@ import {AuthContext} from '../AuthContext'
 import EventSource from "react-native-sse";
 import {useEffect, useState} from "react";
 import {StatusBar} from 'expo-status-bar';
-
+import {subscribe} from "../utils/connect";
 import {
     ScreenCapturePickerView,
     RTCPeerConnection,
@@ -27,36 +27,13 @@ export function HomeScreen(props) {
     const [message, setMessage] = React.useState('');
     const [localStream, setLocalStream] = useState(null);
 
-    /*    useEffect(() => {
-            const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic=madspy0", {
-                headers: new Headers({
-                    'Authorization': 'Bearer ' + props.userToken,
-                }),
-            });
+    useEffect(() => {
+        subscribe(props)
+    }, [])
 
-            es.addEventListener("open", (event) => {
-                console.log("Open SSE connection.");
-            });
+    async function publish(companion, username, desc) {
+        //desc.username = username
 
-            es.addEventListener("message", (event) => {
-                console.log("New message event:", event.data, event);
-            });
-
-            es.addEventListener("error", (event) => {
-                if (event.type === "error") {
-                    console.error("Connection error:", event.message);
-                } else if (event.type === "exception") {
-                    console.error("Error:", event.message, event.error);
-                }
-            });
-
-            es.addEventListener("close", (event) => {
-                console.log("Close SSE connection.");
-            });
-
-        }, [])*/
-
-    async function publish(companion, desc) {
         let params = {
             'data': JSON.stringify(desc),
             'topic': companion
@@ -95,7 +72,7 @@ export function HomeScreen(props) {
             pc.setLocalDescription(desc).then(() => {
                 // Send pc.localDescription to peer
                 console.log(desc)
-                publish(props.companion, desc)
+                publish(props.companion, props.username, desc)
             });
         });
 
@@ -182,14 +159,14 @@ export function HomeScreen(props) {
             <View style={styles.rtcContainer}>
                 {
                     localStream ?
-                    <RTCView
-                        streamURL={localStream.toURL()}
-                        objectFit="cover"
-                        style={{
-                            flex: 1,
-                            alignItems: 'stretch',
-                            justifyContent: 'center',
-                        }}/>
+                        <RTCView
+                            streamURL={localStream.toURL()}
+                            objectFit="cover"
+                            style={{
+                                flex: 1,
+                                alignItems: 'stretch',
+                                justifyContent: 'center',
+                            }}/>
                         : <Text style={styles.title}>Call to {props.companion}</Text>
                 }
                 {/* use light text instead of dark text in the status bar to provide more contrast with a dark background */}
