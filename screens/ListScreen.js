@@ -13,6 +13,7 @@ export function ListScreen(props) {
     const {companion, signOut} = React.useContext(AuthContext);
     const [list, setList] = useState([])
     useEffect(() => {
+        subscribe(props)
         const fetchData = async () => {
             const data = await fetch('http://192.168.33.102:81/api/users',
                 {
@@ -26,7 +27,6 @@ export function ListScreen(props) {
             setList(json)
         }
         fetchData().catch(console.error);
-        subscribe(props)
     }, [])
     //getList(props.userToken).then(r=>console.log(r))
     const Item = ({item, onPress,}) => (

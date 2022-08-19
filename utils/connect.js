@@ -11,7 +11,6 @@ import {
 } from 'react-native-webrtc';
 import {useState} from "react";
 import EventSource from "react-native-sse";
-
 async function call(localStream) {
     const configuration = {
         "iceServers": [{"url": "stun:stun.l.google.com:19302"}]
@@ -49,10 +48,10 @@ export async function getList(userToken) {
 
 export function subscribe(props) {
 
-    const es = new EventSource("http://192.168.33.102/.well-known/mercure?topic="+encodeURIComponent(props.username), {
-        headers: new Headers({
+    const es = new EventSource(`http://192.168.33.102/.well-known/mercure?topic=${encodeURIComponent(props.username)}`, {
+        headers: {
             'Authorization': 'Bearer ' + props.userToken,
-        }),
+        },
     });
     console.log('props!!!', es)
     es.addEventListener("open", (event) => {

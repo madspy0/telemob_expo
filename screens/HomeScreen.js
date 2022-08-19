@@ -27,13 +27,13 @@ export function HomeScreen(props) {
     const [message, setMessage] = React.useState('');
     const [localStream, setLocalStream] = useState(null);
 
-    useEffect(() => {
-        subscribe(props)
+    useEffect( () => {
+        console.log('home props ', props)
+         subscribe(props)
     }, [])
 
     async function publish(companion, username, desc) {
         //desc.username = username
-
         let params = {
             'data': JSON.stringify(desc),
             'topic': companion
