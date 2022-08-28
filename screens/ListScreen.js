@@ -4,18 +4,18 @@ import {useEffect, useState} from "react";
 import {TouchableOpacity} from "react-native-gesture-handler";
 import {AuthContext} from '../AuthContext'
 import {styles} from '../assets/styles'
-import {subscribe} from "../utils/connect";
+import jwt_decode from "jwt-decode";
 
 //import {getList} from '../utils/connect'
 
 export function ListScreen(props) {
-    console.log(props)
+    //console.log('props in list screen ', props)
     const {companion, signOut} = React.useContext(AuthContext);
     const [list, setList] = useState([])
+    const [username, setUsername] = useState(null);
     useEffect(() => {
-        subscribe(props)
         const fetchData = async () => {
-            const data = await fetch('http://192.168.33.102:81/api/users',
+            const data = await fetch('http://192.168.1.138:8000/api/users',
                 {
                     method: 'GET',
                     headers: new Headers({
@@ -23,10 +23,11 @@ export function ListScreen(props) {
                     })
                 })
             const json = await data.json()
-            await console.log(json)
+          //  await console.log(json)
             setList(json)
         }
         fetchData().catch(console.error);
+        setUsername(jwt_decode(props.userToken).mercure.payload.user)
     }, [])
     //getList(props.userToken).then(r=>console.log(r))
     const Item = ({item, onPress,}) => (
@@ -44,7 +45,7 @@ export function ListScreen(props) {
     return (
         <View>
             <FlatList
-                data={list}
+                data={list.filter(item => item.title !== username)}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
             />

@@ -2,10 +2,8 @@ import * as React from 'react';
 import {Button, PermissionsAndroid, Text, TextInput, View} from "react-native";
 import {styles} from "../assets/styles";
 import {AuthContext} from '../AuthContext'
-import EventSource from "react-native-sse";
 import {useEffect, useState} from "react";
 import {StatusBar} from 'expo-status-bar';
-import {subscribe} from "../utils/connect";
 import {
     ScreenCapturePickerView,
     RTCPeerConnection,
@@ -17,9 +15,7 @@ import {
     mediaDevices,
     registerGlobals
 } from 'react-native-webrtc';
-//import {call} from "../utils/connect";
 
-//import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export function HomeScreen(props) {
 
@@ -27,12 +23,8 @@ export function HomeScreen(props) {
     const [message, setMessage] = React.useState('');
     const [localStream, setLocalStream] = useState(null);
 
-    useEffect( () => {
-        console.log('home props ', props)
-         subscribe(props)
-    }, [])
 
-    async function publish(companion, username, desc) {
+    async function publish(companion, desc) {
         //desc.username = username
         let params = {
             'data': JSON.stringify(desc),
@@ -45,7 +37,7 @@ export function HomeScreen(props) {
             formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
-        await fetch('http://192.168.33.102/.well-known/mercure',
+        await fetch('http://192.168.1.138/.well-known/mercure',
             {
                 method: 'POST', // или 'PUT'
                 body: formBody,
@@ -72,7 +64,7 @@ export function HomeScreen(props) {
             pc.setLocalDescription(desc).then(() => {
                 // Send pc.localDescription to peer
                 console.log(desc)
-                publish(props.companion, props.username, desc)
+                publish(props.companion, desc)
             });
         });
 

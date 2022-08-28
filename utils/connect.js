@@ -11,6 +11,7 @@ import {
 } from 'react-native-webrtc';
 import {useState} from "react";
 import EventSource from "react-native-sse";
+import jwt_decode from "jwt-decode";
 async function call(localStream) {
     const configuration = {
         "iceServers": [{"url": "stun:stun.l.google.com:19302"}]
@@ -31,26 +32,27 @@ async function call(localStream) {
 }
 
 export async function getList(userToken) {
-    const [list, setList] = useState([])
-    await fetch('http://192.168.33.102:81/api/users',
-        {
-            method: 'GET',
-            headers: new Headers({
-                'Authorization': 'Bearer ' + userToken
+    const fetchData = async () => {
+        const data = await fetch('http://192.168.1.138:8000/api/users',
+            {
+                method: 'GET',
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + userToken
+                })
             })
-        })
-        .then((resp) => resp.json())
-        .then(r => {
-            setList(r);
-        })
-    return list
+        const json = await data.json()
+        await console.log('from getlist', json)
+    }
+    fetchData().catch(console.error);
 }
 
-export function subscribe(props) {
+export function subscribe(userToken) {
 
-    const es = new EventSource(`http://192.168.33.102/.well-known/mercure?topic=${encodeURIComponent(props.username)}`, {
+    let token = jwt_decode(userToken)
+    console.log(token)
+    const es = new EventSource(`http://192.168.1.138/.well-known/mercure?topic=${encodeURIComponent(token.mercure.payload.user)}`, {
         headers: {
-            'Authorization': 'Bearer ' + props.userToken,
+            'Authorization': 'Bearer ' + userToken,
         },
     });
     console.log('props!!!', es)
