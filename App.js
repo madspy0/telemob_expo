@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button, Text, TextInput, View} from 'react-native';
+import {Button, Text, TextInput, View, Alert} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import * as SecureStore from 'expo-secure-store';
@@ -12,6 +12,7 @@ import 'expo-dev-client';
 //import {useSafeAreaInsets, SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {StatusBar} from 'expo-status-bar';
 import EventSource, {EventSourceListener} from "react-native-sse";
+import NativeDevSettings from "react-native/Libraries/NativeModules/specs/NativeDevSettings";
 
 //export const AuthContext = React.createContext();
 
@@ -37,6 +38,64 @@ async function getValueFor(key) {
     } else {
         // alert('No values stored under that key.');
         return null
+    }
+}
+
+function subscribe(t) {
+    {
+        console.log('tt', t)
+        if (t !== null) {
+            let userToken = t.token
+            let username = t.username
+            //const url = new URL(`http://192.168.33.102/.well-known/mercure?topic=${username}`);
+            //await url.searchParams.append("topic", username);
+            if (es===null) {
+            es = new EventSource(`http://192.168.33.102/.well-known/mercure?topic=${username}`, {
+                /*                    headers: {
+                                        Authorization: {
+                                            toString: function () {
+                                                return "Bearer " + userToken;
+                                            },
+                                        },
+                                    },*/
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                },
+            });
+            console.log(es)
+            es.addEventListener("open", (event) => {
+                console.log("Open SSE connection.");
+            });
+
+            es.addEventListener("message", (event) => {
+                console.log("New message event:", event.data);
+                let offer = JSON.parse(event.data)
+                if (('desc' in offer) && (offer.desc.type === 'offer')) {
+                    Alert.alert(offer.username)
+                }
+            });
+
+            es.addEventListener("error", (event) => {
+                if (event.type === "error") {
+                    console.error("Connection error:", event.message);
+                    if (event.xhrStatus === 401) {
+                        // ошибка авторизации
+                        NativeDevSettings.reload;
+                    }
+                } else if (event.type === "exception") {
+                    console.error("Error:", event.message, event.error);
+                }
+            });
+
+            es.addEventListener("close", (event) => {
+                console.log("Close SSE connection.");
+            });
+            /*                return () => {
+                                es.removeAllEventListeners();
+                                es.close();
+                            };*/
+        }
+    }
     }
 }
 
@@ -136,57 +195,19 @@ export default function App({navigation}) {
 
     React.useEffect(() => {
         // Fetch the token from storage then navigate to our appropriate place
-        const bootstrapAsync = async () => {
-            let userToken=null;
-            let username;
+        const bootstrapAsync = () => {
+            let userToken = null;
             try {
                 // Restore token stored in `SecureStore` or any other encrypted storage
                 // userToken = await SecureStore.getItemAsync('userToken');
-                 getValueFor('userToken').then(t => {
-                    console.log('tt', t)
-                    if (t !== null) {
-                        userToken = t.token
-                        username = t.username
-                        const url = new URL(`http://192.168.1.138/.well-known/mercure?topic=${username}`);
-                        //await url.searchParams.append("topic", username);
-                        es = new EventSource(`http://192.168.1.138/.well-known/mercure?topic=${username}`, {
-                            /*                    headers: {
-                                                    Authorization: {
-                                                        toString: function () {
-                                                            return "Bearer " + userToken;
-                                                        },
-                                                    },
-                                                },*/
-                            headers: {
-                                'Authorization': `Bearer ${userToken}`,
-                            },
-                        });
-                        console.log(es)
-                        es.addEventListener("open", (event) => {
-                            console.log("Open SSE connection.");
-                        });
-
-                        es.addEventListener("message", (event) => {
-                            console.log("New message event:", event.data);
-                        });
-
-                        es.addEventListener("error", (event) => {
-                            if (event.type === "error") {
-                                console.error("Connection error:", event.message);
-                            } else if (event.type === "exception") {
-                                console.error("Error:", event.message, event.error);
-                            }
-                        });
-
-                        es.addEventListener("close", (event) => {
-                            console.log("Close SSE connection.");
-                        });
-                        /*                return () => {
-                                            es.removeAllEventListeners();
-                                            es.close();
-                                        };*/
-                    }
-                })
+                getValueFor('userToken')
+                    .then((t) => {
+                        if (t != null) {
+                            userToken = t.token;
+                            subscribe(t)
+                        }
+                    })
+                    .then(() => dispatch({type: 'RESTORE_TOKEN', token: userToken}))
             } catch (e) {
                 // Restoring token failed
                 console.log(e)
@@ -195,10 +216,9 @@ export default function App({navigation}) {
 
             // This will switch to the App screen or Auth screen and this loading
             // screen will be unmounted and thrown away.
-            await dispatch({type: 'RESTORE_TOKEN', token: userToken});
         };
 
-        bootstrapAsync().catch(console.error);
+        bootstrapAsync();
 
     }, []);
 
@@ -210,22 +230,25 @@ export default function App({navigation}) {
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
                 // In the example, we'll use a dummy token
 
-                const url = 'http://192.168.1.138:8000/api/login';
+                const url = 'http://192.168.33.102:81/api/login';
                 fetch(url,
                     {
                         method: 'POST', // или 'PUT'
                         body: JSON.stringify({'username': data.username, 'password': data.password}),
                         headers: new Headers({
                             'Content-Type': 'application/json',
-                            // 'Host': '192.168.1.138'
+                            // 'Host': '192.168.33.102'
                         }),
                     },
                 )
                     .then((resp) => resp.json())
                     .then((r) => {
                         if (r.token) {
-                            save('userToken', r.token)
-                            dispatch({type: 'SIGN_IN', token: r.token});
+                            save('userToken', r.token).then(() => subscribe(r)).then(dispatch({
+                                type: 'SIGN_IN',
+                                token: r.token
+                            }))
+                            ;
                         } else {
                             alert(r.error)
                         }

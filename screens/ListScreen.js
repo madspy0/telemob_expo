@@ -15,7 +15,7 @@ export function ListScreen(props) {
     const [username, setUsername] = useState(null);
     useEffect(() => {
         const fetchData = async () => {
-            const data = await fetch('http://192.168.1.138:8000/api/users',
+            const data = await fetch('http://192.168.33.102:81/api/users',
                 {
                     method: 'GET',
                     headers: new Headers({

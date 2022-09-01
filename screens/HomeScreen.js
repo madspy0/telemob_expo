@@ -15,6 +15,7 @@ import {
     mediaDevices,
     registerGlobals
 } from 'react-native-webrtc';
+import jwt_decode from "jwt-decode";
 
 
 export function HomeScreen(props) {
@@ -25,9 +26,8 @@ export function HomeScreen(props) {
 
 
     async function publish(companion, desc) {
-        //desc.username = username
         let params = {
-            'data': JSON.stringify(desc),
+            'data': JSON.stringify({'desc':desc, 'username':jwt_decode(props.userToken).mercure.payload.user}),
             'topic': companion
         }
         let formBody = [];
@@ -37,7 +37,7 @@ export function HomeScreen(props) {
             formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
-        await fetch('http://192.168.1.138/.well-known/mercure',
+        await fetch('http://192.168.33.102/.well-known/mercure',
             {
                 method: 'POST', // или 'PUT'
                 body: formBody,

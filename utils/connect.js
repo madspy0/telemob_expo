@@ -33,7 +33,7 @@ async function call(localStream) {
 
 export async function getList(userToken) {
     const fetchData = async () => {
-        const data = await fetch('http://192.168.1.138:8000/api/users',
+        const data = await fetch('http://192.168.33.102:8000/api/users',
             {
                 method: 'GET',
                 headers: new Headers({
@@ -50,7 +50,7 @@ export function subscribe(userToken) {
 
     let token = jwt_decode(userToken)
     console.log(token)
-    const es = new EventSource(`http://192.168.1.138/.well-known/mercure?topic=${encodeURIComponent(token.mercure.payload.user)}`, {
+    const es = new EventSource(`http://192.168.33.102/.well-known/mercure?topic=${encodeURIComponent(token.mercure.payload.user)}`, {
         headers: {
             'Authorization': 'Bearer ' + userToken,
         },
