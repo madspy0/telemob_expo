@@ -16,6 +16,7 @@ import {
     registerGlobals
 } from 'react-native-webrtc';
 import jwt_decode from "jwt-decode";
+import {host} from "../global";
 
 
 export function HomeScreen(props) {
@@ -37,7 +38,7 @@ export function HomeScreen(props) {
             formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
-        await fetch('http://192.168.33.102/.well-known/mercure',
+        await fetch(`${host}/.well-known/mercure`,
             {
                 method: 'POST', // или 'PUT'
                 body: formBody,

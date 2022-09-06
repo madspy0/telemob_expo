@@ -5,6 +5,7 @@ import {TouchableOpacity} from "react-native-gesture-handler";
 import {AuthContext} from '../AuthContext'
 import {styles} from '../assets/styles'
 import jwt_decode from "jwt-decode";
+import {host} from "../global";
 
 //import {getList} from '../utils/connect'
 
@@ -15,7 +16,7 @@ export function ListScreen(props) {
     const [username, setUsername] = useState(null);
     useEffect(() => {
         const fetchData = async () => {
-            const data = await fetch('http://192.168.33.102:81/api/users',
+            const data = await fetch(`${host}:8000/api/users`,
                 {
                     method: 'GET',
                     headers: new Headers({

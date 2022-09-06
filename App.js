@@ -14,9 +14,11 @@ import {StatusBar} from 'expo-status-bar';
 import EventSource, {EventSourceListener} from "react-native-sse";
 import NativeDevSettings from "react-native/Libraries/NativeModules/specs/NativeDevSettings";
 
+import {host} from "./global";
 //export const AuthContext = React.createContext();
 
 let es = null;
+
 
 async function save(key, value) {
     await SecureStore.setItemAsync(key, value);
@@ -50,7 +52,7 @@ function subscribe(t) {
             //const url = new URL(`http://192.168.33.102/.well-known/mercure?topic=${username}`);
             //await url.searchParams.append("topic", username);
             if (es===null) {
-            es = new EventSource(`http://192.168.33.102/.well-known/mercure?topic=${username}`, {
+            es = new EventSource(`${host}/.well-known/mercure?topic=${username}`, {
                 /*                    headers: {
                                         Authorization: {
                                             toString: function () {
@@ -229,8 +231,8 @@ export default function App({navigation}) {
                 // We will also need to handle errors if sign in failed
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
                 // In the example, we'll use a dummy token
-
-                const url = 'http://192.168.33.102:81/api/login';
+console.log('hosr!  ',host)
+                const url = `http://192.168.1.138:8000/api/login`;
                 fetch(url,
                     {
                         method: 'POST', // или 'PUT'
