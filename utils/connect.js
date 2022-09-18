@@ -78,3 +78,29 @@ export function subscribe(userToken) {
         console.log("Close SSE connection.");
     });
 }
+
+export async function answer(offerDescription) {
+    let peerConnection = new RTCPeerConnection();
+    try {
+        let sessionConstraints = {
+            mandatory: {
+                OfferToReceiveAudio: true,
+                OfferToReceiveVideo: true,
+                VoiceActivityDetection: true
+            }
+        }
+        console.log('offer',offerDescription)
+        offerDescription=JSON.parse(offerDescription)
+
+        // Use the received offerDescription
+        const offerDescription = new RTCSessionDescription();
+        await peerConnection.setRemoteDescription(offerDescription);
+
+        const answerDescription = await peerConnection.createAnswer(sessionConstraints);
+        await peerConnection.setLocalDescription(answerDescription);
+
+        // Send the answerDescription back as a response to the offerDescription.
+    } catch (err) {
+        // Handle Errors
+    }
+}

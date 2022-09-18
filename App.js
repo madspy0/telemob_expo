@@ -15,6 +15,7 @@ import EventSource, {EventSourceListener} from "react-native-sse";
 import NativeDevSettings from "react-native/Libraries/NativeModules/specs/NativeDevSettings";
 
 import {host} from "./global";
+import {answer} from "./utils/connect";
 //export const AuthContext = React.createContext();
 
 let es = null;
@@ -73,7 +74,10 @@ function subscribe(t) {
                 console.log("New message event:", event.data);
                 let offer = JSON.parse(event.data)
                 if (('desc' in offer) && (offer.desc.type === 'offer')) {
-                    Alert.alert(offer.username)
+                    //Alert.alert(offer.username)
+                    console.log('offer.desc ',offer.desc)
+                    const ans = async () => answer(offer.desc)
+                    ans().catch(console.error);
                 }
             });
 
@@ -231,7 +235,6 @@ export default function App({navigation}) {
                 // We will also need to handle errors if sign in failed
                 // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
                 // In the example, we'll use a dummy token
-console.log('hosr!  ',host)
                 const url = `http://192.168.1.138:8000/api/login`;
                 fetch(url,
                     {
